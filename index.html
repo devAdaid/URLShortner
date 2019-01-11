@@ -1,12 +1,36 @@
 <head>
     <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
     <link rel = "stylesheet" href="style.css">
+
+    <script>
+        $(document).ready(function() {
+            $(document).on('submit', '#my-form', function() {
+            // do your things
+            return false;
+            });
+        });
+
+        $.ajax({
+            
+            datatype: "json", // expecting JSON to be returned
+
+            success: function (result) {
+                document.getElementById("textbar").value = result;
+            },
+            error: function(result){
+                document.getElementById("textbar").value = result;
+            }
+        })
+    </script>
 </head>
 <body>
     <form class = "box"  method = "post">
         <div>
-            <input type="text" name="originurl" placeholder="Input URL...">
-            <button type = "submit">Fire!</button>
+            <input type="text" id = "textbar" name="originUrl" placeholder="Input URL...">
+            <button class="submit" type = "submit">
+                Fire!
+            </button>
         </div>
     </form>
 </body>
