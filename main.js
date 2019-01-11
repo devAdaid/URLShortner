@@ -1,10 +1,11 @@
 var http = require('http');
-var url = require("url");
 var fs = require('fs');
 var mysql = require('mysql');
 var qs = require('querystring');
 var base62 = require("base62/lib/ascii");
+//var url = require("url");
 
+// mysql 연결
 var sqldb = mysql.createConnection({
     host     : 'localhost',
     port      : 3307,
@@ -16,6 +17,7 @@ var sqldb = mysql.createConnection({
 console.log('mysql connected');
 sqldb.connect();
 
+// 서버 생성
 var app = http.createServer(function(request,response){
     var requrl = request.url;
 
@@ -34,9 +36,10 @@ var app = http.createServer(function(request,response){
         var post = qs.parse(body);
         inputData = post.originUrl;
 
-        // if data exist
         if(inputData != undefined){
           sqldb.query('SELECT * FROM urls WHERE url=?', inputData, function (error, results, fields) {
+            
+            // 기존 데이터 없으면
             if (results == '') {
               // 신규 url DB 등록
               console.log("register new url");
@@ -49,8 +52,6 @@ var app = http.createServer(function(request,response){
                 console.log(insertedId);
                 console.log("http://localhost:3000/"+code);
                 response.writeHead(200);
-                response.end('{"url" : ' + code + ' }');
-                console.log('{"url" : ' + code + ' }');
                 return;
               });
             }
@@ -58,9 +59,8 @@ var app = http.createServer(function(request,response){
               // 기존 url 가져옴
               var code = base62.encode(results[0].id);
               console.log("get url");
-              console.log("http://localhost:3000/"+base62.encode(results[0].id));
+              console.log("http://localhost:3000/"+code);
               response.writeHead(200);
-              response.end('{"url" : ' + code + ' }');
               return;
             }
           });
@@ -69,6 +69,8 @@ var app = http.createServer(function(request,response){
         //end of get post
       });
       
+      response.writeHead(200);
+      response.end(fs.readFileSync(__dirname + requrl));
     }
     else if(request.url == '/favicon.ico'){
         response.writeHead(404);
@@ -77,8 +79,10 @@ var app = http.createServer(function(request,response){
     }
     else{
       try {
+        // 파일명 있는지 검사
         fs.accessSync(__dirname + requrl);
         
+        // 해당되는 파일로 응답
         response.writeHead(200);
         response.end(fs.readFileSync(__dirname + requrl));
       }
@@ -108,10 +112,6 @@ var app = http.createServer(function(request,response){
         return;
       }
     }
-
-    // 해당되는 파일로 응답
-    response.writeHead(200);
-    response.end(fs.readFileSync(__dirname + requrl));
  
 });
 app.listen(3000);
